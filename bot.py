@@ -11,7 +11,7 @@ load_dotenv()
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
-    await update.message.reply_text(f'Hi {user.first_name}! I am a summarization bot. Add me to a group and use /summarize <group name> to get message summaries!')
+    await update.message.reply_text(f'Hi {user.first_name}! I am a summarization bot. Add me to a group and use /summarize <group name> to get message summaries from the last 3 days!')
 
 async def summarize(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     # Get the group name from arguments
@@ -21,20 +21,20 @@ async def summarize(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     group_name = " ".join(context.args)
 
-    # Get all messages for this group name
+    # Get all messages from the last 3 days for this group name
     with Session(engine) as session:
         chat = session.exec(select(Chat).where(Chat.title == group_name)).first()
         if not chat:
             await context.bot.send_message(chat_id=update.effective_chat.id, text="No messages found for that group.")
             return
 
-        messages = session.exec(select(Message).where(Message.chat_id == chat.id)).all()
+        messages = get_messages_last_3_days(chat.id)
 
     if not messages:
-        await context.bot.send_message(chat_id=update.effective_chat.id, text="No messages found for that group.")
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="No messages found in the last 3 days for that group.")
     else:
         # Build the response
-        response = f"Messages from group '{group_name}':\n"
+        response = f"Messages from the last 3 days in group '{group_name}':\n"
         for msg in messages:
             response += f"- {msg.text}\n"
 
@@ -106,6 +106,17 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             except Exception:
                 session.rollback()
                 raise
+
+def get_messages_last_3_days(chat_id):
+    """Return messages from the last 3 days for the given chat_id."""
+    with Session(engine) as session:
+        three_days_ago = datetime.utcnow() - timedelta(days=3)
+        statement = (
+            select(Message)
+            .where(Message.chat_id == chat_id)
+            .where(Message.date > int(three_days_ago.timestamp()))
+        )
+        return session.exec(statement).all()
 
 def main() -> None:
     init_db()
