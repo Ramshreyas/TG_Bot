@@ -11,18 +11,38 @@ load_dotenv()
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
-    await update.message.reply_text(f'Hi {user.first_name}! I am a summarization bot. Add me to a group and use /summarize to get message summaries!')
+    await update.message.reply_text(f'Hi {user.first_name}! I am a summarization bot. Add me to a group and use /summarize <group name> to get message summaries!')
 
 async def summarize(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    chat_id = update.effective_chat.id
-    messages = get_messages_last_7_days(chat_id)
+    # Get the group name from arguments
+    if not context.args:
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="Please provide a group name.")
+        return
+
+    group_name = " ".join(context.args)
+
+    # Get all messages for this group name
+    with Session(engine) as session:
+        chat = session.exec(select(Chat).where(Chat.title == group_name)).first()
+        if not chat:
+            await context.bot.send_message(chat_id=update.effective_chat.id, text="No messages found for that group.")
+            return
+
+        messages = session.exec(select(Message).where(Message.chat_id == chat.id)).all()
+
     if not messages:
-        await context.bot.send_message(chat_id=chat_id, text="No messages found in the last 7 days.")
+        await context.bot.send_message(chat_id=update.effective_chat.id, text="No messages found for that group.")
     else:
-        response = "Messages from the last 7 days:\n"
+        # Build the response
+        response = f"Messages from group '{group_name}':\n"
         for msg in messages:
             response += f"- {msg.text}\n"
-        await context.bot.send_message(chat_id=chat_id, text=response)
+
+        # Telegram messages have a length limit, so we send in chunks if necessary
+        max_length = 4000
+        chunks = [response[i:i+max_length] for i in range(0, len(response), max_length)]
+        for chunk in chunks:
+            await context.bot.send_message(chat_id=update.effective_chat.id, text=chunk)
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if update.message and update.message.chat.type in ['group', 'supergroup']:
@@ -86,16 +106,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
             except Exception:
                 session.rollback()
                 raise
-
-def get_messages_last_7_days(chat_id):
-    with Session(engine) as session:
-        seven_days_ago = datetime.now() - timedelta(days=7)
-        statement = (
-            select(Message)
-            .where(Message.chat_id == chat_id)
-            .where(Message.date > int(seven_days_ago.timestamp()))
-        )
-        return session.exec(statement).all()
 
 def main() -> None:
     init_db()
