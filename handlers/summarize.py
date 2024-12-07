@@ -4,6 +4,7 @@ from telegram import Update
 from telegram.ext import ContextTypes
 from sqlmodel import Session, select
 from db import engine, Chat, Message
+from llm.summarizer import summarize_messages
 
 async def summarize(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not context.args:
@@ -23,10 +24,8 @@ async def summarize(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not messages:
         await context.bot.send_message(chat_id=update.effective_chat.id, text="No messages found in the last 3 days for that group.")
     else:
-        response = f"Messages from the last 3 days in group '{group_name}':\n"
-        for msg in messages:
-            response += f"- {msg.text}\n"
-
+        summary = summarize_messages(messages)
+        response = f"Summary for '{group_name}':\n{summary}"
         max_length = 4000
         chunks = [response[i:i+max_length] for i in range(0, len(response), max_length)]
         for chunk in chunks:
