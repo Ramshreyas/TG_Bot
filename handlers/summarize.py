@@ -3,10 +3,42 @@ from datetime import datetime, timedelta
 from telegram import Update
 from telegram.ext import ContextTypes
 from sqlmodel import Session, select
-from db import engine, Chat, Message, Summary
+from db import engine, Chat, Message, Summary, BotUser
 from llm.summarizer import summarize_messages
 
+def is_bot_user(update: Update) -> bool:
+    effective_username = update.effective_user.username
+    if not effective_username:
+        return False
+    with Session(engine) as session:
+        user = session.exec(select(BotUser).where(BotUser.username == effective_username)).first()
+        if user:
+            return True
+    return False
+
+def get_first_admin_username():
+    with Session(engine) as session:
+        admin_user = session.exec(select(BotUser).where(BotUser.is_admin == True)).first()
+        if admin_user:
+            return admin_user.username
+    return None
+
 async def summarize(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    # Check if user is a bot user
+    if not is_bot_user(update):
+        first_admin = get_first_admin_username()
+        if first_admin:
+            await context.bot.send_message(
+                chat_id=update.effective_chat.id, 
+                text=f"You are not authorized to generate summaries. Please contact @{first_admin} to be added."
+            )
+        else:
+            await context.bot.send_message(
+                chat_id=update.effective_chat.id, 
+                text="You are not authorized to generate summaries, and currently, no admins are available."
+            )
+        return
+
     if not context.args:
         await context.bot.send_message(chat_id=update.effective_chat.id, text="Please provide a group name.")
         return
