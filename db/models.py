@@ -1,3 +1,4 @@
+# db/models.py
 from typing import Optional, List
 from datetime import datetime
 import json
@@ -46,19 +47,14 @@ class Update(SQLModel, table=True):
     message_id: Optional[int] = Field(default=None, foreign_key="message.id")
     message: Optional[Message] = Relationship()
 
-class TLDR(SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    start_time: datetime = Field(index=True)
-    end_time: datetime
-    data: str  # JSON string representation of the list of data objects
-
-    def get_data(self) -> List[dict]:
-        return json.loads(self.data)
-
-    def set_data(self, data_list: List[dict]):
-        self.data = json.dumps(data_list)
-
 class Subscriber(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     user_id: int = Field(index=True)
     username: str
+
+class Summary(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    chat_id: int = Field(foreign_key="chat.id")
+    chat: Chat = Relationship()
+    summary_text: str = Field()
+    created_at: datetime = Field(default_factory=datetime.utcnow)

@@ -1,7 +1,7 @@
 from sqlmodel import SQLModel, Session, create_engine
 from typing import Generator
 import os
-from .models import ChatType, Chat, User, Message, Update, TLDR, Subscriber
+from .models import ChatType, Chat, User, Message, Update, Subscriber
 
 # Create SQLite database URL
 DATABASE_URL = "sqlite:///telegram_bot.db"
