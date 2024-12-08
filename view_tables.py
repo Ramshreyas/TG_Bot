@@ -1,5 +1,5 @@
 from sqlmodel import Session, select
-from db import engine, Chat, User, Message, ChatType, Summary
+from db import engine, Chat, User, Message, ChatType, Summary, BotUser
 
 def view_tables():
     with Session(engine) as session:
@@ -26,6 +26,13 @@ def view_tables():
         summaries = session.exec(select(Summary)).all()
         for summary in summaries:
             print(f"ID: {summary.id}, Chat ID: {summary.chat_id}, Summary: {summary.summary_text[:50]}...")
+
+        # View Bot Users
+        print("\n=== Bot Users ===")
+        bot_users = session.exec(select(BotUser)).all()
+        # Display users and admin status
+        for user in bot_users:
+            print(f"ID: {user.id}, Username: {user.username}, Admin: {user.is_admin}")
 
 def get_chat_names():
     """Get a list of all chat titles/names with their IDs."""

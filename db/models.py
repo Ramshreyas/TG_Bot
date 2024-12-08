@@ -1,4 +1,4 @@
-# db/models.py
+# db/models.py (modified)
 from typing import Optional, List
 from datetime import datetime
 import json
@@ -19,7 +19,7 @@ class Chat(SQLModel, table=True):
 
 class User(SQLModel, table=True):
     id: int = Field(primary_key=True, index=True)
-    user_id: Optional[int] = Field(default=None, sa_column=Column(BigInteger()))  # Telegram user ID
+    user_id: Optional[int] = Field(default=None, sa_column=Column(BigInteger()))
     first_name: str = Field()
     last_name: Optional[str] = Field(default=None)
     is_bot: bool = Field()
@@ -58,3 +58,8 @@ class Summary(SQLModel, table=True):
     chat: Chat = Relationship()
     summary_text: str = Field()
     created_at: datetime = Field(default_factory=datetime.utcnow)
+
+class BotUser(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    username: str = Field(index=True, unique=True)
+    is_admin: bool = Field(default=False)
