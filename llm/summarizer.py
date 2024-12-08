@@ -6,11 +6,14 @@ from llm.prompts.summarize_prompt import PROMPT
 def summarize_messages(messages):
     openai.api_key = os.getenv("OPENAI_API_KEY")
 
-    messages_text = "\n".join(msg.text for msg in messages if msg.text)
+    # Include the username or first_name along with the message text
+    messages_text = "\n".join(
+        f"{(msg.from_user.username or msg.from_user.first_name)}: {msg.text}"
+        for msg in messages if msg.text
+    )
 
-    # Use ChatCompletion with the latest openai client version
-    response = openai.chat.completions.create(
-        model="gpt-4",  # Assuming 'o1' is a valid model name
+    response = openai.ChatCompletion.create(
+        model="gpt-4",
         messages=[
             {"role": "system", "content": PROMPT},
             {"role": "user", "content": messages_text}
