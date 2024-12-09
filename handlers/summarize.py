@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from telegram import Update
 from telegram.ext import ContextTypes
 from sqlmodel import Session, select
+from sqlalchemy.orm import joinedload
 from db import engine, Chat, Message, Summary, BotUser
 from llm.summarizer import summarize_messages
 
@@ -87,14 +88,16 @@ async def summarize(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 def get_messages_last_3_days(chat_id):
     from datetime import datetime, timedelta
-    from sqlmodel import Session, select
-    from db import engine, Message
-
     three_days_ago = datetime.utcnow() - timedelta(days=3)
+
     with Session(engine) as session:
         statement = (
             select(Message)
             .where(Message.chat_id == chat_id)
             .where(Message.date > int(three_days_ago.timestamp()))
+            .options(joinedload(Message.from_user))  # Eager load from_user
         )
-        return session.exec(statement).all()
+        messages = session.exec(statement).all()
+
+        # Now all from_user data is loaded, you can safely return messages
+        return messages
