@@ -15,7 +15,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     first_admin = get_first_admin_username()
     if first_admin:
-        admin_info = f"\nPlease contact {first_admin} to be added to the whitelist."
+        admin_info = f"\nPlease contact @{first_admin} to be added to the whitelist."
     else:
         admin_info = "\nCurrently, no admins are available."
 
