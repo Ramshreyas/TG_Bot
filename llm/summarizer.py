@@ -12,7 +12,7 @@ def summarize_messages(messages):
         for msg in messages if msg.text
     )
 
-    response = openai.ChatCompletion.create(
+    response = openai.chat.completions.create(
         model="gpt-4",
         messages=[
             {"role": "system", "content": PROMPT},
