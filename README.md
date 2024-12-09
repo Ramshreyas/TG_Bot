@@ -54,35 +54,49 @@ This project is a Telegram bot that summarizes messages from groups. It uses Ope
 
 ## Setup
 
-1. **Clone the repository**:  
-   `git clone https://github.com/yourusername/telegram-summarization-bot.git`  
-   `cd telegram-summarization-bot`
+1. **Clone the repository**:
+  ``` bash  
+   git clone https://github.com/yourusername/telegram-summarization-bot.git
+   cd telegram-summarization-bot
+  ```
 
-2. **Create and activate a virtual environment**:  
-   `python3 -m venv venv`  
-   `source venv/bin/activate`
+2. **Create and activate a virtual environment**: 
+  ``` bash 
+   python3 -m venv venv
+   source venv/bin/activate
+  ```
 
 3. **Install dependencies**:  
-   `pip install -r requirements.txt`
+  ``` bash 
+  pip install -r requirements.txt
+  ```
 
 4. **Set up environment variables**:  
    Create a `.env` file:  
 
-    TELEGRAM_BOT_TOKEN=your_telegram_bot_token 
-    OPENAI_API_KEY=your_openai_api_key
+  ``` bash 
+  TELEGRAM_BOT_TOKEN=your_telegram_bot_token 
+  OPENAI_API_KEY=your_openai_api_key
+  ```
 
 5. **Initialize the Database**:  
 Ensure your database URL is configured in the code or environment. Run the bot once to create tables (assuming `init_db()` sets up the schema):  
-`python bot.py`
+  ``` bash 
+  python bot.py
+  ```
 
 After this, use:  
-`python add_admin.py <username>`  
+  ``` bash 
+  python add_admin.py <username>
+  ```
 to add your first admin user.
 
 ## Usage
 
 1. **Run the bot**:  
-`python bot.py`
+  ``` bash 
+  python bot.py
+  ```
 
 2. **In Telegram**:
 - Start a conversation with the bot using `/start`.
