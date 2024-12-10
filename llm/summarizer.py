@@ -18,7 +18,6 @@ def summarize_messages(messages):
             {"role": "system", "content": PROMPT},
             {"role": "user", "content": messages_text}
         ],
-        max_tokens=300,
         temperature=0.7
     )
 
